@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "app/main.py",
+      "use": "@railway/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "app/main.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/build/$1"
+    }
+  ]
+}
