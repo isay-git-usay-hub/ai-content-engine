@@ -26,7 +26,7 @@ Automated trending content analysis and strategy generation using free data sour
 3. **Set up environment variables**
    Create a `.env` file in the root directory with your API keys:
    ```
-   RAPIDAPI_KEY=your_rapidapi_key
+   GROQ_API_KEY=your_groqapi_key
    ```
 
 4. **Run the application**
@@ -80,31 +80,6 @@ You can deploy the frontend to static hosting services like Netlify, Vercel, or 
 3.  Set the publish directory to `frontend/build`.
 4.  Add your environment variables (e.g., `REACT_APP_API_URL`) to the Netlify/Vercel project settings.
 
-### Backend (FastAPI)
-
-You can deploy the backend to platforms like Heroku, Render, or any other service that supports Python applications.
-
-**Deploying to Heroku:**
-
-1.  Create a `Procfile` in the root directory:
-    ```
-    web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
-    ```
-2.  Create a `runtime.txt` file to specify the Python version:
-    ```
-    python-3.9.13
-    ```
-3.  Push your code to a Heroku app.
-
-## Hosting on GitHub
-
-1.  **Create a new repository on GitHub.**
-2.  **Push your local repository to GitHub:**
-    ```bash
-    git remote add origin https://github.com/your-username/your-repository.git
-    git branch -M main
-    git push -u origin main
-    ```
 
 ## Contributing
 
