@@ -63,7 +63,7 @@ pip install -r requirements.txt
 
 Create a `.env` file in the root directory by copying the example:
 ```bash
-cp .env.example .env
+cp .env.example .env  # On Windows: copy .env.example .env
 ```
 Now, edit the `.env` file and add your Groq API key:
 ```
