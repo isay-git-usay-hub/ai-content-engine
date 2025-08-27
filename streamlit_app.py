@@ -25,15 +25,34 @@ def render_home_page():
     """)
 
 async def render_trend_dashboard():
-    """Renders the page for displaying trends."""
+    """Renders the page for displaying trends, with interactivity."""
     st.title("📈 Trend Dashboard")
-    st.markdown("Discover what's currently trending on Google and Reddit.")
+    st.markdown("Discover what's currently trending on Google and Reddit. Use the dropdown to select a country for Google Trends.")
 
-    with st.spinner("🔍 Fetching the latest trends... this might take a moment."):
-        trending_data = await get_trends()
+    # --- Interactive Controls ---
+    countries = {
+        'India': 'india',
+        'United States': 'united_states',
+        'United Kingdom': 'united_kingdom',
+        'Canada': 'canada',
+        'Australia': 'australia',
+        'Germany': 'germany',
+        'France': 'france',
+    }
+
+    selected_country_name = st.selectbox(
+        "Select a country for Google Trends:",
+        options=list(countries.keys()),
+        help="The Reddit trends are global and not affected by this filter."
+    )
+    selected_country_code = countries[selected_country_name]
+
+    # --- Data Fetching and Display ---
+    with st.spinner(f"🔍 Fetching the latest trends for {selected_country_name}..."):
+        trending_data = await get_trends(country=selected_country_code)
 
     if not trending_data:
-        st.error("😔 Could not fetch trending data at the moment. Please try again later or clear the cache.")
+        st.error("😔 Could not fetch trending data. This might be due to API rate limits or network issues. Please try again later.")
         return
 
     st.success(f"✅ Data fetched successfully! Last updated: {trending_data.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -130,6 +149,9 @@ async def render_ai_strategy_page():
                         st.info(recommendation.hook)
                         st.markdown(f"**✍️ Description:**")
                         st.write(recommendation.description)
+                        if recommendation.visual_idea:
+                            st.markdown(f"**🎨 Visual Idea:**")
+                            st.write(recommendation.visual_idea)
 
 async def render_competitor_analysis_page():
     """Renders the page for competitor analysis."""

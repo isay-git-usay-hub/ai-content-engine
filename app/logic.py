@@ -10,25 +10,27 @@ from app.models import TrendingData, StrategyResponse
 
 logger = logging.getLogger(__name__)
 
-# In-memory cache
+# In-memory cache for trends, now structured by country
 cache = {
-    "trending_data": None,
-    "last_update": None,
+    "trending_data": {}, # e.g., {"india": TrendingData, "us": TrendingData}
+    "last_update": {},   # e.g., {"india": datetime, "us": datetime}
     "cache_duration": timedelta(minutes=15)
 }
 
-async def get_trends() -> Optional[TrendingData]:
+async def get_trends(country: str = 'india') -> Optional[TrendingData]:
     """
-    Collects trending data from Google Trends and Reddit with caching.
-    This is a refactored, UI-agnostic version of the original FastAPI endpoint.
+    Collects trending data from Google Trends (for a specific country) and Reddit.
+    Uses a country-specific cache to store results.
     """
     now = datetime.now()
-    if (cache["trending_data"] and cache["last_update"] and
-            now - cache["last_update"] < cache["cache_duration"]):
-        logger.info("📋 Returning cached trending data")
-        return cache["trending_data"]
 
-    logger.info("🔄 Collecting fresh trending data...")
+    # Check cache first
+    if (country in cache["trending_data"] and country in cache["last_update"] and
+            now - cache["last_update"][country] < cache["cache_duration"]):
+        logger.info(f"📋 Returning cached trending data for {country}")
+        return cache["trending_data"][country]
+
+    logger.info(f"🔄 Collecting fresh trending data for {country}...")
 
     google_collector = GoogleTrendsCollector()
     reddit_collector = RedditCollector()
@@ -37,8 +39,8 @@ async def get_trends() -> Optional[TrendingData]:
 
     # Await collectors concurrently
     results = await asyncio.gather(
-        google_collector.collect(),
-        reddit_collector.collect(),
+        google_collector.collect(country=country),
+        reddit_collector.collect(), # Reddit trends are global (r/all)
         return_exceptions=True
     )
 
@@ -64,22 +66,24 @@ async def get_trends() -> Optional[TrendingData]:
         timestamp=now
     )
 
-    # Cache the result
-    cache["trending_data"] = trending_data
-    cache["last_update"] = now
+    # Cache the result, using the country as the key
+    cache["trending_data"][country] = trending_data
+    cache["last_update"][country] = now
 
-    logger.info("✅ Data collected and cached")
+    logger.info(f"✅ Data for {country} collected and cached")
     return trending_data
 
 async def generate_strategy(target_audience: str, niche: str) -> Optional[StrategyResponse]:
     """
     Generates a complete content strategy by fetching trends and analyzing them.
+    This version uses default trends (India) for strategy generation.
     """
     logger.info(f"🎯 Generating strategy for {target_audience} in {niche}")
 
-    trending_data = await get_trends()
+    # For strategy generation, we'll use a default set of trends for now.
+    trending_data = await get_trends(country='india')
     if not trending_data:
-        logger.error("Cannot generate strategy without trending data.")
+        logger.error("Cannot generate strategy without default trending data.")
         return None
 
     try:

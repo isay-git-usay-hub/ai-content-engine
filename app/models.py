@@ -17,11 +17,12 @@ class TrendingData(BaseModel):
 
 class ContentRecommendation(BaseModel):
     title: str
-    format: str  # "Reel", "Short", "Post", "Story"
+    format: str
     platform: str
     best_time: str
     hook: str
     description: str
+    visual_idea: Optional[str] = None
 
 class StrategyResponse(BaseModel):
     top_trends: List[TrendItem]
