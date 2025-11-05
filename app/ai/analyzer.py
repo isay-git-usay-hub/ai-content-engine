@@ -42,45 +42,57 @@ class AIAnalyzer:
                 logger.error("No trending data available for analysis")
                 raise ValueError("No trending data available for analysis")
 
-            # Prepare prompt for Groq
+            # Prepare a more sophisticated prompt for Groq
             prompt = f"""
-            Analyze these trending topics and create a content strategy:
+As an expert social media strategist and content creator, your task is to analyze the provided trends and devise a highly creative and effective content strategy for the specified audience and niche.
 
-            GOOGLE TRENDS:
-            {', '.join([t.get('title', t) if isinstance(t, dict) else str(t) for t in trends_data.google_trends[:5]])}
+**Analysis Data:**
+- **Google Trends:** {', '.join([t.get('title', 'Unknown') for t in trends_data.google_trends[:5]])}
+- **Reddit Hot Topics:** {', '.join([t.get('title', 'Unknown')[:100] for t in trends_data.reddit_trends[:5]])}
+- **Target Audience:** {target_audience}
+- **Niche:** {niche}
 
-            REDDIT HOT TOPICS:
-            {', '.join([t.get('title', 'Unknown')[:100] for t in trends_data.reddit_trends[:5]])}
+**Your Mission:**
+Generate a short, 3-day content plan. For each day, provide one unique and compelling content idea. The ideas should be a mix of formats and platforms to maximize reach and engagement.
 
-            TARGET AUDIENCE: {target_audience}
-            NICHE: {niche}
+**Output Requirements:**
+You must return ONLY a single, well-formed JSON object. Do not include any text, explanations, or markdown formatting before or after the JSON. The JSON must conform to the following structure exactly:
 
-            Create a JSON response with exactly this structure:
-            {{
-              "top_trends": [
-                {{
-                  "title": "trend name",
-                  "platform": "google_trends or reddit",
-                  "engagement_score": 100,
-                  "url": "https://example.com",
-                  "metadata": {{"analysis": "why this trend works"}}
-                }}
-              ],
-              "content_strategy": [
-                {{
-                  "title": "Engaging Content Title",
-                  "format": "Reel/Short/Post/Story/Carousel",
-                  "platform": "Instagram/TikTok",
-                  "best_time": "7 PM IST",
-                  "hook": "Educational/Challenge/Tips/Tutorial",
-                  "description": "Detailed content description"
-                }}
-              ],
-              "analysis_summary": "Key insights and recommendations based on the trends"
-            }}
-
-            Return ONLY the JSON object, with no additional text or explanations. Do not wrap the JSON in markdown backticks. Ensure the JSON is well-formed.
-            """
+{{
+  "top_trends": [
+    {{
+      "title": "The most relevant trend title",
+      "platform": "google_trends or reddit",
+      "engagement_score": 850,
+      "url": "https://example.com/trend",
+      "metadata": {{
+        "analysis": "A brief, insightful analysis of why this trend is relevant and how it can be leveraged for the target audience."
+      }}
+    }}
+  ],
+  "content_strategy": [
+    {{
+      "title": "Example: '3 AI Tools That Will Change How You Work'",
+      "format": "Short-Form Video (e.g., Reel, TikTok, Short)",
+      "platform": "Instagram",
+      "best_time": "8:00 PM",
+      "hook": "A killer opening line to grab attention in the first 3 seconds. Example: 'Stop scrolling! This AI tool does your work for you.'",
+      "description": "A detailed, engaging description for the post. Include a compelling narrative, relevant hashtags (3-5), and a clear call-to-action (CTA). Example: 'Ever feel overwhelmed? These 3 AI tools are game-changers... 1. Tool A... 2. Tool B... 3. Tool C... Which one will you try first? Let me know! #AI #Productivity #Tech'",
+      "visual_idea": "A suggestion for the visuals. Example: 'Fast-paced video showing the UI of each tool in action, with dynamic text overlays and a trending audio track.'"
+    }},
+    {{
+      "title": "Example: 'The Ultimate Guide to [Relevant Trend]'",
+      "format": "Carousel Post / Blog Post",
+      "platform": "LinkedIn",
+      "best_time": "9:00 AM",
+      "hook": "An intriguing question or a bold statement. Example: 'Is [Relevant Trend] the future of [Niche]?'",
+      "description": "In-depth content providing real value. Use bullet points or numbered lists for readability. End with a question to encourage comments. Example: 'Deep dive into [Relevant Trend]... 1. What it is... 2. Why it matters... 3. How to get started... What are your thoughts on this? #TechTrends #[Niche]'",
+      "visual_idea": "A visually appealing carousel with a strong title slide, followed by slides breaking down each point with clean icons and minimal text."
+    }}
+  ],
+  "analysis_summary": "A concise, high-level summary of the key insights from the trends and the strategic recommendations for the content plan."
+}}
+"""
 
             logger.info("Sending request to Groq")
 

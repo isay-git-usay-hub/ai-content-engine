@@ -20,31 +20,35 @@ class GoogleTrendsCollector(BaseCollector):
         super().__init__(limit)
         self.pytrends = TrendReq(hl='en-US', tz=360, timeout=(10, 25)) if PYTRENDS_AVAILABLE else None
 
-    async def collect(self) -> List[Dict[str, Any]]:
+    async def collect(self, country: str = 'india') -> List[Dict[str, Any]]:
+        """
+        Collects trending searches from Google Trends for a specific country.
+        Does not fall back to other collectors on failure.
+        """
         if not PYTRENDS_AVAILABLE or not self.pytrends:
-            logger.info("Using Reddit data (pytrends unavailable)")
-            return await RedditCollector(self.limit).collect()
+            logger.warning("pytrends library not available, returning empty list for Google Trends.")
+            return []
             
         try:
             loop = asyncio.get_event_loop()
             
-            def get_trends():
-                trending = self.pytrends.trending_searches(pn='india')
-                return trending.head(self.limit).values.flatten().tolist()
+            def get_trends_sync():
+                # Use the country parameter for targeted trend collection
+                trending_df = self.pytrends.trending_searches(pn=country)
+                return trending_df.head(self.limit).values.flatten().tolist()
             
-            trends_list = await loop.run_in_executor(None, get_trends)
+            trends_list = await loop.run_in_executor(None, get_trends_sync)
             
-            # Generate dynamic engagement scores based on trend position
             formatted_data = [
                 {
                     'title': trend,
                     'platform': 'google_trends',
-                    'engagement_score': max(1000 - (i * 100), 100),  # Higher score for top trends
-                    'url': f"https://trends.google.com/trends/explore?q={trend}",
+                    'engagement_score': max(1000 - (i * 100), 100),
+                    'url': f"https://trends.google.com/trends/explore?q={trend.replace(' ', '+')}",
                     'metadata': {
                         'type': 'trending_search',
                         'rank': i + 1,
-                        'region': 'india'
+                        'region': country
                     }
                 }
                 for i, trend in enumerate(trends_list)
@@ -53,6 +57,6 @@ class GoogleTrendsCollector(BaseCollector):
             return self.validate_data(formatted_data)
             
         except Exception as e:
-            logger.error(f"Error collecting Google Trends: {str(e)}")
-            logger.info("Falling back to Reddit data due to API issues")
-            return await RedditCollector(self.limit).collect()
+            logger.error(f"Error collecting Google Trends for country '{country}': {str(e)}")
+            logger.warning(f"Could not fetch data from Google Trends, returning empty list.")
+            return []
